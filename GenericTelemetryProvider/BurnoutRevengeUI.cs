@@ -5,22 +5,35 @@ using Newtonsoft.Json;
 
 namespace GenericTelemetryProvider
 {
-    // Burnout Revenge through Xerenge: the game sends its telemetry over UDP
-    // (telemetry = on in its xerenge.conf), to the port set here.
+    // Burnout Revenge through Xerenge (telemetry = on in its xerenge.conf), or
+    // DriveClub through DriveClub Recomp (on by default): the game sends its
+    // telemetry over UDP to the port set here. One window per game, each with
+    // its own saved port.
     public partial class BurnoutRevengeUI : Form
     {
         BurnoutRevengeTelemetryProvider provider;
 
         string saveFilename = "BurnoutRevenge\\BurnoutRevengeConfig.txt";
+        string gameName = "Burnout Revenge";
 
-        public BurnoutRevengeUI()
+        public BurnoutRevengeUI() : this("Burnout Revenge", "BurnoutRevenge")
+        {
+        }
+
+        // gameName as shown; folder: where its port is saved (<folder>\<folder>Config.txt).
+        public BurnoutRevengeUI(string gameName, string folder)
         {
             InitializeComponent();
+
+            this.gameName = gameName;
+            saveFilename = folder + "\\" + folder + "Config.txt";
+            Text = gameName + (gameName == "DriveClub" ? " (DriveClub Recomp)" : " (Xerenge)");
 
             statusLabel.Text = "Click Initialize!";
 
             provider = new BurnoutRevengeTelemetryProvider();
             provider.gameUI = provider.ui = this;
+            provider.gameName = gameName;
 
             LoadConfig();
 
@@ -82,7 +95,7 @@ namespace GenericTelemetryProvider
 
             initializeButton.Enabled = false;
             portTextBox.Enabled = false;
-            statusLabel.Text = "Waiting for Burnout Revenge on UDP port " + port;
+            statusLabel.Text = "Waiting for " + gameName + " on UDP port " + port;
 
             provider.Stop();
             provider.Run();

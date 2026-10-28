@@ -49,6 +49,7 @@ namespace GenericTelemetryProvider
         UEVRUI uevrUI;
         Wreckfest2UI wreckfest2UI;
         BurnoutRevengeUI burnoutRevengeUI;
+        BurnoutRevengeUI driveClubUI;
         public static MainForm Instance;
         public string versionString = "v1.2.3";
 
@@ -477,6 +478,21 @@ namespace GenericTelemetryProvider
             Thread x = new Thread(new ParameterizedThreadStart((form) => ((BurnoutRevengeUI)form).ShowDialog()));
             x.IsBackground = true;
             x.Start(burnoutRevengeUI);
+        }
+
+        private void driveClubButton_Click(object sender, EventArgs e)
+        {
+            if (driveClubUI != null && !driveClubUI.IsDisposed)
+            {
+                driveClubUI.Dispose();
+                driveClubUI = null;
+            }
+
+            driveClubUI = new BurnoutRevengeUI("DriveClub", "DriveClub");
+
+            Thread x = new Thread(new ParameterizedThreadStart((form) => ((BurnoutRevengeUI)form).ShowDialog()));
+            x.IsBackground = true;
+            x.Start(driveClubUI);
         }
 
         private void wreckfestExperimentsButton_Click(object sender, EventArgs e)

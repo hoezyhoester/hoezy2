@@ -42,6 +42,7 @@ SpaceMonkey has been tested with Sim Racing Studio (motion, wind, shakers and le
 - [Wreckfest 2](https://github.com/PHARTGAMES/SpaceMonkey#wreckfest-2)
 - [Cyberpunk 2077](https://github.com/PHARTGAMES/SpaceMonkey#cyberpunk-2077)
 - [Burnout Revenge (Xerenge)](https://github.com/PHARTGAMES/SpaceMonkey#burnout-revenge-xerenge)
+- [DriveClub (DriveClub Recomp)](https://github.com/PHARTGAMES/SpaceMonkey#driveclub-driveclub-recomp)
 
 ## Installation
 
@@ -609,6 +610,22 @@ Burnout Revenge runs natively on PC through Xerenge (https://github.com/shipa-2/
 - The motion is currently taken from the race camera, which follows the car closely, so it is slightly smoothed and late compared to the car itself.
 - If the rig leans into corners instead of out of them, set `telemetry_mirror = false` in `xerenge.conf`.
 - Throttle, brake and steering come from the first XInput pad on this PC until the game sends them itself.
+
+---
+
+## DriveClub (DriveClub Recomp)
+
+DriveClub runs natively on PC through DriveClub Recomp (https://github.com/OverkillLabs3/driveclub-recomp), whose motion rig telemetry sends the car's g-forces, per-wheel suspension (bumps and kerbs), yaw rate, slope and impacts from the game's own physics, as UDP packets. SpaceMonkey uses those directly instead of working them out from a transform.
+
+### Setup
+
+1. Nothing to do in the game: the telemetry is on by default and sends to this PC on port 20790. To send to another PC, set `motion_host = <IP>` in the game's `data\user\input_config\default.ini` (and allow UDP through the firewall).
+
+### Usage
+
+1. Go to the main interface of Space Monkey and select the DriveClub main config.
+2. Press the DriveClub button, check the UDP port (20790) and press Initialize!.
+3. Start a race; you should now be receiving telemetry. In the menus the rig eases back to rest.
 
 ---
 

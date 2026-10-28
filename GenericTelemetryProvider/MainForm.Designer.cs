@@ -66,6 +66,7 @@
             this.wreckfest2Button = new System.Windows.Forms.Button();
             this.cyberpunk2077Button = new System.Windows.Forms.Button();
             this.burnoutRevengeButton = new System.Windows.Forms.Button();
+            this.driveClubButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // Dirt5Button
@@ -461,11 +462,23 @@
             this.burnoutRevengeButton.UseVisualStyleBackColor = true;
             this.burnoutRevengeButton.Click += new System.EventHandler(this.burnoutRevengeButton_Click);
             // 
+            // driveClubButton
+            // 
+            this.driveClubButton.Location = new System.Drawing.Point(165, 521);
+            this.driveClubButton.Margin = new System.Windows.Forms.Padding(2);
+            this.driveClubButton.Name = "driveClubButton";
+            this.driveClubButton.Size = new System.Drawing.Size(148, 46);
+            this.driveClubButton.TabIndex = 54;
+            this.driveClubButton.Text = "DriveClub";
+            this.driveClubButton.UseVisualStyleBackColor = true;
+            this.driveClubButton.Click += new System.EventHandler(this.driveClubButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(548, 578);
+            this.Controls.Add(this.driveClubButton);
             this.Controls.Add(this.burnoutRevengeButton);
             this.Controls.Add(this.cyberpunk2077Button);
             this.Controls.Add(this.wreckfest2Button);
@@ -554,6 +567,7 @@
         private System.Windows.Forms.Button wreckfest2Button;
         private System.Windows.Forms.Button cyberpunk2077Button;
         private System.Windows.Forms.Button burnoutRevengeButton;
+        private System.Windows.Forms.Button driveClubButton;
     }
 }
 

@@ -13,11 +13,21 @@ namespace GenericTelemetryProvider
     // race as UDP packets ("XRTM", see BurnoutRevengeAPI); everything else -
     // velocities, accelerations, angular rates - is worked out here, as for the
     // other transform-only games.
+    //
+    // DriveClub, through DriveClub Recomp, sends version 2 of the same packet: its
+    // accelerations come from the game's own simulation (the tyres' forces and
+    // loads, the change of speed), and each wheel's suspension from its tyre's
+    // load - so bumps and kerbs come through per wheel. Those replace what would
+    // be worked out from the transform; the transform (from its yaw, pitch and
+    // speed) still gives the angles and angular rates, so the signs are the same
+    // as every other game's here.
     class BurnoutRevengeTelemetryProvider : GenericProviderBase
     {
         Thread t;
         public BurnoutRevengeUI ui;
         public int port = BurnoutRevengeAPI.DefaultPort;
+        public string gameName = "Burnout Revenge";
+        Vector3 simPosition = Vector3.Zero;   // version 2: the car moved along at its speed
 
         UdpClient socket;
         BurnoutRevengeFrame frame;
@@ -86,12 +96,12 @@ namespace GenericTelemetryProvider
             }
             catch (Exception e)
             {
-                SetStatus("Cannot listen on UDP port " + port + ": " + e.Message);
+                SetStatus("Cannot listen on UDP port " + port + ": " + e.Message + " (is another SpaceMonkey window using it?)");
                 StopSending();
                 return;
             }
 
-            SetStatus("Waiting for Burnout Revenge on UDP port " + port);
+            SetStatus("Waiting for " + gameName + " on UDP port " + port);
 
             Stopwatch idle = new Stopwatch();
             idle.Start();
@@ -128,6 +138,7 @@ namespace GenericTelemetryProvider
                     {
                         lastFrameTime = 0.0;
                         lastFrameValid = false;
+                        simPosition = Vector3.Zero;
                     }
                     lastSequence = frame.sequence;
 
@@ -163,7 +174,7 @@ namespace GenericTelemetryProvider
                 }
                 else if (idle.Elapsed.TotalSeconds > 2.0)
                 {
-                    SetStatus("Waiting for Burnout Revenge on UDP port " + port);
+                    SetStatus("Waiting for " + gameName + " on UDP port " + port);
                 }
 
                 // Not in a race, or the game has gone quiet: ease the rig back to
@@ -198,7 +209,17 @@ namespace GenericTelemetryProvider
             m.M11 = rht.X; m.M12 = rht.Y; m.M13 = rht.Z; m.M14 = 0.0f;
             m.M21 = up.X; m.M22 = up.Y; m.M23 = up.Z; m.M24 = 0.0f;
             m.M31 = fwd.X; m.M32 = fwd.Y; m.M33 = fwd.Z; m.M34 = 0.0f;
-            m.M41 = (float)f.posX; m.M42 = (float)f.posY; m.M43 = (float)f.posZ; m.M44 = 1.0f;
+            if (f.version >= 2 && f.posX == 0.0 && f.posY == 0.0 && f.posZ == 0.0)
+            {
+                // No position from the game: move along the forward direction at its speed.
+                simPosition += fwd * f.speed * _dt;
+                m.M41 = simPosition.X; m.M42 = simPosition.Y; m.M43 = simPosition.Z;
+            }
+            else
+            {
+                m.M41 = (float)f.posX; m.M42 = (float)f.posY; m.M43 = (float)f.posZ;
+            }
+            m.M44 = 1.0f;
 
             transform = m;
             ProcessTransform(m, _dt);
@@ -213,7 +234,10 @@ namespace GenericTelemetryProvider
             {
                 ui.DebugTextChanged(JsonConvert.SerializeObject(filteredData, Formatting.Indented) +
                     "\n dt: " + dt +
+                    "\n game: " + (frame.game == BurnoutRevengeAPI.GameDriveClub ? "DriveClub" : "Burnout Revenge") +
                     "\n in race: " + frame.InRace +
+                    (frame.HasDynamics ? "\n game accel (m/s2) right/up/fwd: " + frame.accelRight.ToString("F2") + " / " + frame.accelUp.ToString("F2") + " / " + frame.accelForward.ToString("F2") + "\n impact (g): " + frame.impact.ToString("F2") : "") +
+                    (frame.HasSuspension ? "\n suspension mm FL/FR/RL/RR: " + string.Join(" / ", Array.ConvertAll(frame.suspension, x => x.ToString("F0"))) : "") +
                     "\n game speed (m/s): " + frame.speed +
                     "\n Pitch: " + filteredData.pitch +
                     "\n Yaw: " + filteredData.yaw +
@@ -279,6 +303,60 @@ namespace GenericTelemetryProvider
             rawData.roll = Utils.LoopAngleRad(-pyr.Z, (float)Math.PI * 0.5f);
         }
 
+        // DriveClub: the game's own accelerations rather than ones worked out
+        // from the transform; an impact adds a jolt to the heave.
+        public override void CalcAcceleration()
+        {
+            if (!frame.HasDynamics || !frame.InRace)
+            {
+                base.CalcAcceleration();
+                return;
+            }
+
+            Vector3 localVelocity = new Vector3((float)filteredData.local_velocity_x, (float)filteredData.local_velocity_y, (float)filteredData.local_velocity_z);
+            lastVelocity = localVelocity;
+
+            const float toG = 0.10197162129779283f;
+            rawData.gforce_lateral = frame.accelRight * toG;
+            rawData.gforce_vertical = frame.accelUp * toG + Math.Max(0.0f, frame.impact);
+            rawData.gforce_longitudinal = frame.accelForward * toG;
+
+            FilterModuleCustom.Instance.Filter(rawData, ref filteredData, accelKeyMask, false);
+        }
+
+        // DriveClub: each wheel's travel from its tyre's load (bumps, kerbs and
+        // the car's own lean), rather than one worked out from the g-forces.
+        public override void SimulateSuspension()
+        {
+            if (!frame.HasSuspension || !frame.InRace)
+            {
+                base.SimulateSuspension();
+                return;
+            }
+
+            rawData.suspension_position_fl = filteredData.suspension_position_fl = frame.suspension[0];
+            rawData.suspension_position_fr = filteredData.suspension_position_fr = frame.suspension[1];
+            rawData.suspension_position_bl = filteredData.suspension_position_bl = frame.suspension[2];
+            rawData.suspension_position_br = filteredData.suspension_position_br = frame.suspension[3];
+
+            rawData.suspension_velocity_bl = ((float)filteredData.suspension_position_bl - (float)lastFilteredData.suspension_position_bl) / dt;
+            rawData.suspension_velocity_br = ((float)filteredData.suspension_position_br - (float)lastFilteredData.suspension_position_br) / dt;
+            rawData.suspension_velocity_fl = ((float)filteredData.suspension_position_fl - (float)lastFilteredData.suspension_position_fl) / dt;
+            rawData.suspension_velocity_fr = ((float)filteredData.suspension_position_fr - (float)lastFilteredData.suspension_position_fr) / dt;
+
+            FilterModuleCustom.Instance.Filter(rawData, ref filteredData, suspVelKeyMask, false);
+
+            rawData.suspension_acceleration_bl = ((float)filteredData.suspension_velocity_bl - (float)lastFilteredData.suspension_velocity_bl) / dt;
+            rawData.suspension_acceleration_br = ((float)filteredData.suspension_velocity_br - (float)lastFilteredData.suspension_velocity_br) / dt;
+            rawData.suspension_acceleration_fl = ((float)filteredData.suspension_velocity_fl - (float)lastFilteredData.suspension_velocity_fl) / dt;
+            rawData.suspension_acceleration_fr = ((float)filteredData.suspension_velocity_fr - (float)lastFilteredData.suspension_velocity_fr) / dt;
+
+            rawData.wheel_patch_speed_bl = filteredData.local_velocity_z;
+            rawData.wheel_patch_speed_br = filteredData.local_velocity_z;
+            rawData.wheel_patch_speed_fl = filteredData.local_velocity_z;
+            rawData.wheel_patch_speed_fr = filteredData.local_velocity_z;
+        }
+
         public override void SimulateEngine()
         {
             bool known = frame.InputsKnown && frame.rpm >= 0.0f;
@@ -298,17 +376,14 @@ namespace GenericTelemetryProvider
                 filteredData.throttle_input = Math.Max(0.0f, frame.throttle);
                 filteredData.brake_input = Math.Max(0.0f, frame.brake);
                 filteredData.steering_input = frame.steering;
+                if (frame.version >= 2 && frame.clutch >= 0.0f)
+                    filteredData.clutch_input = frame.clutch;
                 filteredData.engine_rate = frame.rpm >= 0.0f ? frame.rpm : (Math.Max(0.0f, frame.throttle) * 6200.0f) + 800.0f;
                 return;
             }
 
             // Not sent by the game yet: the pad on this PC, as for the other games.
             base.ProcessInputs();
-        }
-
-        public override void SimulateSuspension()
-        {
-            base.SimulateSuspension();
         }
 
         public override void CalcAngularVelocityAndAccel()
