@@ -41,6 +41,7 @@ SpaceMonkey has been tested with Sim Racing Studio (motion, wind, shakers and le
 - [UEVR](https://github.com/PHARTGAMES/SpaceMonkey#uevr-httpsgithubcompraydoguevr)
 - [Wreckfest 2](https://github.com/PHARTGAMES/SpaceMonkey#wreckfest-2)
 - [Cyberpunk 2077](https://github.com/PHARTGAMES/SpaceMonkey#cyberpunk-2077)
+- [Burnout Revenge (Xerenge)](https://github.com/PHARTGAMES/SpaceMonkey#burnout-revenge-xerenge)
 
 ## Installation
 
@@ -584,6 +585,30 @@ WRC.Telemetry.TelemetryPort = 20777;
 4. Space Monkey will now wait for a connection from Cyberpunk 2077 and output telemetry automatically. 
 5. Launch Cyberpunk 2077.
 6. Enter a vehicle; you should now be receiving telemetry in SpaceMonkey.
+
+---
+
+## Burnout Revenge (Xerenge)
+
+Burnout Revenge runs natively on PC through Xerenge (https://github.com/shipa-2/Xerenge), which sends the player's position and attitude in a race as UDP packets. SpaceMonkey works out the accelerations and rates from them, as for the other transform-based games.
+
+### Setup
+
+1. In the game's `xerenge.conf` (in the install directory) add `telemetry = on`. If SpaceMonkey runs on a different PC from the game (Xerenge also runs on Linux, macOS and Android), also add `telemetry_host = <that PC's IP address>`. The default port is 20790 (`telemetry_port`).
+2. Allow SpaceMonkey through the Windows firewall for UDP if the game runs on another machine.
+
+### Usage
+
+1. Go to the main interface of Space Monkey and select a main config for Burnout Revenge.
+2. Press the Burnout Revenge button.
+3. Check the UDP port matches the game's and press Initialize!.
+4. Start a race; you should now be receiving telemetry. In the menus the rig eases back to rest.
+
+### Notes
+
+- The motion is currently taken from the race camera, which follows the car closely, so it is slightly smoothed and late compared to the car itself.
+- If the rig leans into corners instead of out of them, set `telemetry_mirror = false` in `xerenge.conf`.
+- Throttle, brake and steering come from the first XInput pad on this PC until the game sends them itself.
 
 ---
 

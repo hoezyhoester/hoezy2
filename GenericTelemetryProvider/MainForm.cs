@@ -48,6 +48,7 @@ namespace GenericTelemetryProvider
         SMTUI smtUI;
         UEVRUI uevrUI;
         Wreckfest2UI wreckfest2UI;
+        BurnoutRevengeUI burnoutRevengeUI;
         public static MainForm Instance;
         public string versionString = "v1.2.3";
 
@@ -461,6 +462,21 @@ namespace GenericTelemetryProvider
             Thread x = new Thread(new ParameterizedThreadStart((form) => ((Wreckfest2UI)form).ShowDialog()));
             x.IsBackground = true;
             x.Start(wreckfest2UI);
+        }
+
+        private void burnoutRevengeButton_Click(object sender, EventArgs e)
+        {
+            if (burnoutRevengeUI != null && !burnoutRevengeUI.IsDisposed)
+            {
+                burnoutRevengeUI.Dispose();
+                burnoutRevengeUI = null;
+            }
+
+            burnoutRevengeUI = new BurnoutRevengeUI();
+
+            Thread x = new Thread(new ParameterizedThreadStart((form) => ((BurnoutRevengeUI)form).ShowDialog()));
+            x.IsBackground = true;
+            x.Start(burnoutRevengeUI);
         }
 
         private void wreckfestExperimentsButton_Click(object sender, EventArgs e)

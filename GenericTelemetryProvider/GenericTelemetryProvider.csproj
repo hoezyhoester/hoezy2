@@ -252,6 +252,14 @@
       <DependentUpon>MedianFilterControl.cs</DependentUpon>
     </Compile>
     <Compile Include="Wreckfest2TelemetryProvider.cs" />
+    <Compile Include="BurnoutRevengeAPI.cs" />
+    <Compile Include="BurnoutRevengeTelemetryProvider.cs" />
+    <Compile Include="BurnoutRevengeUI.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="BurnoutRevengeUI.Designer.cs">
+      <DependentUpon>BurnoutRevengeUI.cs</DependentUpon>
+    </Compile>
     <Compile Include="WreckfestTelemetryProviderExperiments.cs" />
     <Compile Include="Wreckfest2UI.cs">
       <SubType>Form</SubType>

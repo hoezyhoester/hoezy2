@@ -65,6 +65,7 @@
             this.UEVRBtn = new System.Windows.Forms.Button();
             this.wreckfest2Button = new System.Windows.Forms.Button();
             this.cyberpunk2077Button = new System.Windows.Forms.Button();
+            this.burnoutRevengeButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // Dirt5Button
@@ -449,11 +450,23 @@
             this.cyberpunk2077Button.UseVisualStyleBackColor = true;
             this.cyberpunk2077Button.Click += new System.EventHandler(this.cyberpunk2077Button_Click);
             // 
+            // burnoutRevengeButton
+            // 
+            this.burnoutRevengeButton.Location = new System.Drawing.Point(14, 521);
+            this.burnoutRevengeButton.Margin = new System.Windows.Forms.Padding(2);
+            this.burnoutRevengeButton.Name = "burnoutRevengeButton";
+            this.burnoutRevengeButton.Size = new System.Drawing.Size(148, 46);
+            this.burnoutRevengeButton.TabIndex = 53;
+            this.burnoutRevengeButton.Text = "Burnout Revenge";
+            this.burnoutRevengeButton.UseVisualStyleBackColor = true;
+            this.burnoutRevengeButton.Click += new System.EventHandler(this.burnoutRevengeButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(548, 528);
+            this.ClientSize = new System.Drawing.Size(548, 578);
+            this.Controls.Add(this.burnoutRevengeButton);
             this.Controls.Add(this.cyberpunk2077Button);
             this.Controls.Add(this.wreckfest2Button);
             this.Controls.Add(this.UEVRBtn);
@@ -540,6 +553,7 @@
         private System.Windows.Forms.Button UEVRBtn;
         private System.Windows.Forms.Button wreckfest2Button;
         private System.Windows.Forms.Button cyberpunk2077Button;
+        private System.Windows.Forms.Button burnoutRevengeButton;
     }
 }
 
