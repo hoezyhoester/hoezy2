@@ -232,16 +232,30 @@ namespace GenericTelemetryProvider
 
             if (ui != null)
             {
-                ui.DebugTextChanged(JsonConvert.SerializeObject(filteredData, Formatting.Indented) +
+                // The game's own values first: the box jumps back to the top every frame.
+                string head = (frame.game == BurnoutRevengeAPI.GameDriveClub ? "DriveClub" : "Burnout Revenge") +
+                    (frame.InRace ? " - in a race" : " - not in a race") +
+                    "\n speed: " + (frame.speed * 3.6f).ToString("F0") + " km/h";
+                if (frame.HasDynamics)
+                {
+                    head += "\n\n FROM THE GAME (m/s2, 9.8 = 1 g)" +
+                        "\n  up/down:     " + frame.accelUp.ToString("F1") + "   (crest: negative, dip: positive)" +
+                        "\n  right/left:  " + frame.accelRight.ToString("F1") + "   (right-hander: positive)" +
+                        "\n  fwd/back:    " + frame.accelForward.ToString("F1") + "   (braking: negative)" +
+                        "\n  slope:       " + (frame.pitch * 57.2958f).ToString("F1") + " deg   (uphill: positive)" +
+                        "\n  yaw rate:    " + frame.yawRate.ToString("F2") + "   (turning right: positive)" +
+                        "\n  impact:      " + frame.impact.ToString("F1") + " g";
+                    if (frame.HasSuspension)
+                        head += "\n  suspension mm FL/FR/RL/RR: " + string.Join(" / ", Array.ConvertAll(frame.suspension, x => x.ToString("F0")));
+                }
+                head += "\n\n TO THE MOTION SOFTWARE (g)" +
+                    "\n  vertical:     " + ((float)filteredData.gforce_vertical).ToString("F2") +
+                    "\n  lateral:      " + ((float)filteredData.gforce_lateral).ToString("F2") +
+                    "\n  longitudinal: " + ((float)filteredData.gforce_longitudinal).ToString("F2") +
+                    "\n  pitch / roll: " + ((float)filteredData.pitch).ToString("F3") + " / " + ((float)filteredData.roll).ToString("F3") +
+                    "\n\n";
+                ui.DebugTextChanged(head + JsonConvert.SerializeObject(filteredData, Formatting.Indented) +
                     "\n dt: " + dt +
-                    "\n game: " + (frame.game == BurnoutRevengeAPI.GameDriveClub ? "DriveClub" : "Burnout Revenge") +
-                    "\n in race: " + frame.InRace +
-                    (frame.HasDynamics ? "\n game accel (m/s2) right/up/fwd: " + frame.accelRight.ToString("F2") + " / " + frame.accelUp.ToString("F2") + " / " + frame.accelForward.ToString("F2") + "\n impact (g): " + frame.impact.ToString("F2") : "") +
-                    (frame.HasSuspension ? "\n suspension mm FL/FR/RL/RR: " + string.Join(" / ", Array.ConvertAll(frame.suspension, x => x.ToString("F0"))) : "") +
-                    "\n game speed (m/s): " + frame.speed +
-                    "\n Pitch: " + filteredData.pitch +
-                    "\n Yaw: " + filteredData.yaw +
-                    "\n Roll: " + filteredData.roll +
                     "\n fwd: " + fwd.X + ", " + fwd.Y + ", " + fwd.Z +
                     "\n up: " + up.X + ", " + up.Y + ", " + up.Z);
             }
