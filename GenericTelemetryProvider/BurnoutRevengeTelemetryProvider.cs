@@ -235,7 +235,9 @@ namespace GenericTelemetryProvider
                 // The game's own values first: the box jumps back to the top every frame.
                 string head = (frame.game == BurnoutRevengeAPI.GameDriveClub ? "DriveClub" : "Burnout Revenge") +
                     (frame.InRace ? " - in a race" : " - not in a race") +
-                    "\n speed: " + (frame.speed * 3.6f).ToString("F0") + " km/h";
+                    "\n speed: " + (frame.speed * 3.6f).ToString("F0") + " km/h" +
+                    "\n engine: " + (frame.rpm >= 0.0f ? frame.rpm.ToString("F0") + " rpm" : "rpm not found yet") +
+                    ", gear " + (frame.gear >= 0.0f ? frame.gear.ToString("F0") : "not found yet");
                 if (frame.HasDynamics)
                 {
                     head += "\n\n FROM THE GAME (m/s2, 9.8 = 1 g)" +
@@ -247,6 +249,8 @@ namespace GenericTelemetryProvider
                         "\n  impact:      " + frame.impact.ToString("F1") + " g";
                     if (frame.HasSuspension)
                         head += "\n  suspension mm FL/FR/RL/RR: " + string.Join(" / ", Array.ConvertAll(frame.suspension, x => x.ToString("F0")));
+                    if (frame.HasSlip)
+                        head += "\n  wheel slip FL/FR/RL/RR:    " + string.Join(" / ", Array.ConvertAll(frame.slipRatio, x => x.ToString("F2"))) + "   (spinning: +, locking: -)";
                 }
                 head += "\n\n TO THE MOTION SOFTWARE (g)" +
                     "\n  vertical:     " + ((float)filteredData.gforce_vertical).ToString("F2") +
@@ -365,16 +369,40 @@ namespace GenericTelemetryProvider
             rawData.suspension_acceleration_fl = ((float)filteredData.suspension_velocity_fl - (float)lastFilteredData.suspension_velocity_fl) / dt;
             rawData.suspension_acceleration_fr = ((float)filteredData.suspension_velocity_fr - (float)lastFilteredData.suspension_velocity_fr) / dt;
 
-            rawData.wheel_patch_speed_bl = filteredData.local_velocity_z;
-            rawData.wheel_patch_speed_br = filteredData.local_velocity_z;
-            rawData.wheel_patch_speed_fl = filteredData.local_velocity_z;
-            rawData.wheel_patch_speed_fr = filteredData.local_velocity_z;
+            SetWheelSpeeds();
         }
+
+        // Each wheel's speed from the car's and its tyre's slip ratio (when the
+        // game sends it): wheelspin and locking brakes, for shakers.
+        void SetWheelSpeeds()
+        {
+            float v = (float)filteredData.local_velocity_z;
+            if (!frame.HasSlip || !frame.InRace)
+            {
+                rawData.wheel_patch_speed_fl = rawData.wheel_patch_speed_fr = v;
+                rawData.wheel_patch_speed_bl = rawData.wheel_patch_speed_br = v;
+                filteredData.wheel_patch_speed_fl = filteredData.wheel_patch_speed_fr = v;
+                filteredData.wheel_patch_speed_bl = filteredData.wheel_patch_speed_br = v;
+                return;
+            }
+            float[] w = new float[4];
+            for (int i = 0; i < 4; ++i)
+                w[i] = v * (1.0f + Math.Max(-1.0f, Math.Min(5.0f, frame.slipRatio[i])));
+            rawData.wheel_patch_speed_fl = filteredData.wheel_patch_speed_fl = w[0];
+            rawData.wheel_patch_speed_fr = filteredData.wheel_patch_speed_fr = w[1];
+            rawData.wheel_patch_speed_bl = filteredData.wheel_patch_speed_bl = w[2];
+            rawData.wheel_patch_speed_br = filteredData.wheel_patch_speed_br = w[3];
+        }
+
+        float maxRpmSeen = 0.0f;
 
         public override void SimulateEngine()
         {
             bool known = frame.InputsKnown && frame.rpm >= 0.0f;
-            rawData.max_rpm = 7000.0f;
+            if (known && frame.rpm > maxRpmSeen && frame.rpm < 20000.0f)
+                maxRpmSeen = frame.rpm;
+            // The game does not say its car's limit: the highest RPM seen, at least 7000.
+            rawData.max_rpm = Math.Max(7000.0f, maxRpmSeen);
             rawData.max_gears = 6.0f;
             rawData.gear = known && frame.gear >= 0.0f ? frame.gear : 1.0f;
             rawData.idle_rpm = 800.0f;

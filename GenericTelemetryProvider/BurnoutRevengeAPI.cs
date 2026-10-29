@@ -25,6 +25,9 @@ namespace GenericTelemetryProvider
     //  156 f32  impact (g)
     //  160 f32  suspension travel FL FR RL RR (mm, + compressed)
     //  176 f32  each wheel's load over its average, FL FR RL RR
+    // 224 bytes (flag 16): also
+    //  192 f32  slip ratio FL FR RL RR (0 rolling, + spinning, - locking)
+    //  208 f32  slip angle FL FR RL RR (rad)
     // In version 2 the position is 0: the provider moves the car along
     // its forward direction at its speed.
     public struct BurnoutRevengeFrame
@@ -44,11 +47,14 @@ namespace GenericTelemetryProvider
         public float yawRate, pitch, roll, yaw, impact;
         public float[] suspension;   // FL FR RL RR, mm
         public float[] loadRatio;    // FL FR RL RR
+        public float[] slipRatio;    // FL FR RL RR, null when not sent
+        public float[] slipAngle;
 
         public bool InRace { get { return (flags & BurnoutRevengeAPI.FlagInRace) != 0; } }
         public bool InputsKnown { get { return (flags & BurnoutRevengeAPI.FlagInputs) != 0; } }
         public bool HasDynamics { get { return version >= 2 && (flags & BurnoutRevengeAPI.FlagDynamics) != 0; } }
         public bool HasSuspension { get { return version >= 2 && (flags & BurnoutRevengeAPI.FlagSuspension) != 0 && suspension != null; } }
+        public bool HasSlip { get { return version >= 2 && (flags & BurnoutRevengeAPI.FlagSlip) != 0 && slipRatio != null; } }
     }
 
     public static class BurnoutRevengeAPI
@@ -61,6 +67,8 @@ namespace GenericTelemetryProvider
         public const ushort FlagInputs = 2;
         public const ushort FlagDynamics = 4;
         public const ushort FlagSuspension = 8;
+        public const ushort FlagSlip = 16;
+        public const int PacketSizeSlip = 224;
         public const uint GameBurnoutRevenge = 1;
         public const uint GameDriveClub = 2;
 
@@ -122,6 +130,16 @@ namespace GenericTelemetryProvider
                 {
                     frame.suspension[i] = BitConverter.ToSingle(data, 160 + 4 * i);
                     frame.loadRatio[i] = BitConverter.ToSingle(data, 176 + 4 * i);
+                }
+                if (data.Length >= PacketSizeSlip)
+                {
+                    frame.slipRatio = new float[4];
+                    frame.slipAngle = new float[4];
+                    for (int i = 0; i < 4; ++i)
+                    {
+                        frame.slipRatio[i] = BitConverter.ToSingle(data, 192 + 4 * i);
+                        frame.slipAngle[i] = BitConverter.ToSingle(data, 208 + 4 * i);
+                    }
                 }
                 if (float.IsNaN(frame.accelRight) || float.IsNaN(frame.accelUp) || float.IsNaN(frame.accelForward))
                     return false;
