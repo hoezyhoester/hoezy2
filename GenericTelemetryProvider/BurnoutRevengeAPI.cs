@@ -18,7 +18,7 @@ namespace GenericTelemetryProvider
     //  100 f32  throttle, brake, steering, rpm, gear (-1 when not known)
     // Version 2 (DriveClub), 192 bytes: the above, and
     //    6 u16  flags: also 4 the car's own accelerations, 8 suspension per wheel
-    //   12 u32  game (2: DriveClub)
+    //   12 u32  game (2: DriveClub, 3: Star Fox 64)
     //  120 f32  clutch
     //  128 f32  acceleration right, up, forward (m/s^2, up 0 at rest)
     //  140 f32  yaw rate (rad/s, + right)  144 pitch (rad, + nose up)  148 roll  152 yaw (rad)
@@ -71,6 +71,14 @@ namespace GenericTelemetryProvider
         public const int PacketSizeSlip = 224;
         public const uint GameBurnoutRevenge = 1;
         public const uint GameDriveClub = 2;
+        public const uint GameStarFox64 = 3;   // Starfox64Recomp: the player's Arwing, Landmaster or Blue-Marine
+
+        public static string GameName(uint game)
+        {
+            if (game == GameDriveClub) return "DriveClub";
+            if (game == GameStarFox64) return "Star Fox 64";
+            return "Burnout Revenge";
+        }
 
         static readonly byte[] Magic = Encoding.ASCII.GetBytes("XRTM");
 

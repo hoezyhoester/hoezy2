@@ -233,18 +233,21 @@ namespace GenericTelemetryProvider
             if (ui != null)
             {
                 // The game's own values first: the box jumps back to the top every frame.
-                string head = (frame.game == BurnoutRevengeAPI.GameDriveClub ? "DriveClub" : "Burnout Revenge") +
-                    (frame.InRace ? " - in a race" : " - not in a race") +
+                bool flight = frame.game == BurnoutRevengeAPI.GameStarFox64;
+                string head = BurnoutRevengeAPI.GameName(frame.game) +
+                    (flight ? (frame.InRace ? " - flying" : " - not flying (menus, map, cutscene or paused)")
+                            : (frame.InRace ? " - in a race" : " - not in a race")) +
                     "\n speed: " + (frame.speed * 3.6f).ToString("F0") + " km/h" +
+                    (flight ? "\n boost: " + (frame.throttle > 0.5f ? "on" : "off") :
                     "\n engine: " + (frame.rpm >= 0.0f ? frame.rpm.ToString("F0") + " rpm" : "rpm not found yet") +
-                    ", gear " + (frame.gear >= 0.0f ? frame.gear.ToString("F0") : "not found yet");
+                    ", gear " + (frame.gear >= 0.0f ? frame.gear.ToString("F0") : "not found yet"));
                 if (frame.HasDynamics)
                 {
                     head += "\n\n FROM THE GAME (m/s2, 9.8 = 1 g)" +
                         "\n  up/down:     " + frame.accelUp.ToString("F1") + "   (crest: negative, dip: positive)" +
                         "\n  right/left:  " + frame.accelRight.ToString("F1") + "   (right-hander: positive)" +
                         "\n  fwd/back:    " + frame.accelForward.ToString("F1") + "   (braking: negative)" +
-                        "\n  slope:       " + (frame.pitch * 57.2958f).ToString("F1") + " deg   (uphill: positive)" +
+                        "\n  " + (flight ? "nose pitch:  " : "slope:       ") + (frame.pitch * 57.2958f).ToString("F1") + " deg   (" + (flight ? "climbing" : "uphill") + ": positive)" +
                         "\n  yaw rate:    " + frame.yawRate.ToString("F2") + "   (turning right: positive)" +
                         "\n  impact:      " + frame.impact.ToString("F1") + " g";
                     if (frame.HasSuspension)

@@ -1,0 +1,90 @@
+# Config file for an example SF64: Recompiled mod.
+
+# Fields that end up in the mod's manifest.
+[manifest]
+
+# Unique ID of this mod. Pick something long enough that it'll never be the same as any other mod.
+# The name displayed in the mod management menu is separate from this so this doesn't need to be human readable.
+id = "sf64_motion_rig_telemetry"
+
+# Version of this mod.
+version = "1.0.0"
+
+# The name that will show up for this mod in the mod menu. This should be human readable.
+display_name = "Motion Rig Telemetry"
+
+# The description that will show up when this mod is displayed in the mod menu. This should be human readable.
+description = """
+Sends your Arwing, Landmaster or Blue-Marine's motion to a motion simulator through SpaceMonkey \
+(press its Star Fox 64 button), the same way DriveClub Recomp does: g-forces from turns, climbs, \
+dives, loops, boosts and brakes, a jolt when you're hit, and the craft's pitch and bank. \
+Barrel rolls don't spin the rig. The rig eases back to rest in menus, cutscenes and on the pause screen.
+
+It sends UDP packets to 127.0.0.1 port 20790 by default; change that below to send to another PC."""
+
+# A short description that will show up in this mod's entry in the mod list. This should be human readable and kept short
+# to prevent it from being cut off due to the limited space.
+short_description = "Your craft's motion for a motion simulator, through SpaceMonkey."
+
+# Authors of this mod.
+authors = [ "hoezyhoester" ]
+
+# ID of the target recomp game.
+game_id = "sf64"
+
+# Minimum version of the target recomp (e.g. Starfox 64: Recompiled) that this mod can run on.
+minimum_recomp_version = "1.0.0"
+
+# Dependency mods. Each entry is the mod's ID and then an optional minimum version of the dependency mod.
+dependencies = [
+# Example dependency:
+#    "modname:1.0.0"
+]
+
+# Native libraries (e.g. DLLs) and the functions they export.
+native_libraries = [
+    { name = "sf64_motion_rig", funcs = ["sf64_motion_rig_configure", "sf64_motion_rig_update"] }
+]
+
+# Inputs to the mod tool.
+[inputs]
+
+# Input elf file to generate a mod from.
+elf_path = "build/mod.elf"
+
+# Output mod filename.
+mod_filename = "sf64_motion_rig_telemetry"
+
+# Reference symbol files.
+func_reference_syms_file = "Starfox64RecompSyms/sf64.us.rev1.syms.toml"
+data_reference_syms_files = [ "Starfox64RecompSyms/sf64.us.rev1.datasyms.toml" ]
+
+# Additional files to include in the mod.
+additional_files = [ ]
+
+[[manifest.config_options]]
+id = "enabled"
+name = "Telemetry"
+description = "Send the craft's motion to SpaceMonkey."
+type = "Enum"
+options = [ "On", "Off" ]
+default = "On"
+
+[[manifest.config_options]]
+id = "host"
+name = "Send to (IP address)"
+description = "The PC running SpaceMonkey. 127.0.0.1 is this PC."
+type = "String"
+default = "127.0.0.1"
+
+[[manifest.config_options]]
+id = "port"
+name = "UDP port"
+description = "The port set in SpaceMonkey's Star Fox 64 window (20790 by default)."
+type = "Number"
+min = 1024
+max = 65535
+step = 1
+precision = 0
+percent = false
+default = 20790

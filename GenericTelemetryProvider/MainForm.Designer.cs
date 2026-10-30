@@ -67,6 +67,7 @@
             this.cyberpunk2077Button = new System.Windows.Forms.Button();
             this.burnoutRevengeButton = new System.Windows.Forms.Button();
             this.driveClubButton = new System.Windows.Forms.Button();
+            this.starFox64Button = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // Dirt5Button
@@ -473,11 +474,23 @@
             this.driveClubButton.UseVisualStyleBackColor = true;
             this.driveClubButton.Click += new System.EventHandler(this.driveClubButton_Click);
             // 
+            // starFox64Button
+            // 
+            this.starFox64Button.Location = new System.Drawing.Point(316, 521);
+            this.starFox64Button.Margin = new System.Windows.Forms.Padding(2);
+            this.starFox64Button.Name = "starFox64Button";
+            this.starFox64Button.Size = new System.Drawing.Size(148, 46);
+            this.starFox64Button.TabIndex = 55;
+            this.starFox64Button.Text = "Star Fox 64";
+            this.starFox64Button.UseVisualStyleBackColor = true;
+            this.starFox64Button.Click += new System.EventHandler(this.starFox64Button_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(548, 578);
+            this.Controls.Add(this.starFox64Button);
             this.Controls.Add(this.driveClubButton);
             this.Controls.Add(this.burnoutRevengeButton);
             this.Controls.Add(this.cyberpunk2077Button);
@@ -568,6 +581,7 @@
         private System.Windows.Forms.Button cyberpunk2077Button;
         private System.Windows.Forms.Button burnoutRevengeButton;
         private System.Windows.Forms.Button driveClubButton;
+        private System.Windows.Forms.Button starFox64Button;
     }
 }
 

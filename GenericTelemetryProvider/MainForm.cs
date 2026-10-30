@@ -50,6 +50,7 @@ namespace GenericTelemetryProvider
         Wreckfest2UI wreckfest2UI;
         BurnoutRevengeUI burnoutRevengeUI;
         BurnoutRevengeUI driveClubUI;
+        BurnoutRevengeUI starFox64UI;
         public static MainForm Instance;
         public string versionString = "v1.2.3";
 
@@ -493,6 +494,21 @@ namespace GenericTelemetryProvider
             Thread x = new Thread(new ParameterizedThreadStart((form) => ((BurnoutRevengeUI)form).ShowDialog()));
             x.IsBackground = true;
             x.Start(driveClubUI);
+        }
+
+        private void starFox64Button_Click(object sender, EventArgs e)
+        {
+            if (starFox64UI != null && !starFox64UI.IsDisposed)
+            {
+                starFox64UI.Dispose();
+                starFox64UI = null;
+            }
+
+            starFox64UI = new BurnoutRevengeUI("Star Fox 64", "StarFox64");
+
+            Thread x = new Thread(new ParameterizedThreadStart((form) => ((BurnoutRevengeUI)form).ShowDialog()));
+            x.IsBackground = true;
+            x.Start(starFox64UI);
         }
 
         private void wreckfestExperimentsButton_Click(object sender, EventArgs e)

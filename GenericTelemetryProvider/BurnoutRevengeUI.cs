@@ -6,7 +6,8 @@ using Newtonsoft.Json;
 namespace GenericTelemetryProvider
 {
     // Burnout Revenge through Xerenge (telemetry = on in its xerenge.conf), or
-    // DriveClub through DriveClub Recomp (on by default): the game sends its
+    // DriveClub through DriveClub Recomp, or Star Fox 64 through
+    // Starfox64Recomp (both on by default): the game sends its
     // telemetry over UDP to the port set here. One window per game, each with
     // its own saved port.
     public partial class BurnoutRevengeUI : Form
@@ -27,7 +28,7 @@ namespace GenericTelemetryProvider
 
             this.gameName = gameName;
             saveFilename = folder + "\\" + folder + "Config.txt";
-            Text = gameName + (gameName == "DriveClub" ? " (DriveClub Recomp)" : " (Xerenge)");
+            Text = gameName + (gameName == "DriveClub" ? " (DriveClub Recomp)" : gameName == "Star Fox 64" ? " (Starfox64Recomp)" : " (Xerenge)");
 
             statusLabel.Text = "Click Initialize!";
 

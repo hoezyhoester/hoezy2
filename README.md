@@ -43,6 +43,7 @@ SpaceMonkey has been tested with Sim Racing Studio (motion, wind, shakers and le
 - [Cyberpunk 2077](https://github.com/PHARTGAMES/SpaceMonkey#cyberpunk-2077)
 - [Burnout Revenge (Xerenge)](https://github.com/PHARTGAMES/SpaceMonkey#burnout-revenge-xerenge)
 - [DriveClub (DriveClub Recomp)](https://github.com/PHARTGAMES/SpaceMonkey#driveclub-driveclub-recomp)
+- [Star Fox 64 (Starfox 64: Recompiled)](https://github.com/PHARTGAMES/SpaceMonkey#star-fox-64-starfox-64-recompiled)
 
 ## Installation
 
@@ -626,6 +627,21 @@ DriveClub runs natively on PC through DriveClub Recomp (https://github.com/Overk
 1. Go to the main interface of Space Monkey and select the DriveClub main config.
 2. Press the DriveClub button, check the UDP port (20790) and press Initialize!.
 3. Start a race; you should now be receiving telemetry. In the menus the rig eases back to rest.
+
+## Star Fox 64 (Starfox 64: Recompiled)
+
+Star Fox 64 runs natively on PC through Starfox 64: Recompiled (https://github.com/sonicdcer/Starfox64Recomp). The Motion Rig Telemetry mod (source in `GameMods/StarFox64MotionRig`) sends the player's Arwing, Landmaster or Blue-Marine as UDP packets in the same format as DriveClub Recomp: the craft's pitch and bank, and the g-forces of its turns, climbs, dives, loops, boosts and brakes, worked out from the game's own movement, with a jolt when it's hit. Barrel rolls don't spin the rig.
+
+### Setup
+
+1. Drag `sf64_motion_rig_telemetry.zip` onto the Starfox 64: Recompiled window (before starting the game), or use **Install Mods** in its mod menu. Make sure the mod is enabled.
+2. It sends to this PC on port 20790. To send to another PC, set the IP address in the mod's options in the mod menu (and allow UDP through the firewall).
+
+### Usage
+
+1. Go to the main interface of Space Monkey and select the StarFox64 main config.
+2. Press the Star Fox 64 button, check the UDP port (20790) and press Initialize!.
+3. Start a level; you should now be receiving telemetry. In menus, cutscenes and on the pause screen the rig eases back to rest.
 
 ---
 
