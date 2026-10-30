@@ -87,11 +87,35 @@ namespace GenericTelemetryProvider
 
             this.Text = "SpaceMonkey " + versionString;
 
+            if (StarFox64Only)
+                ApplyStarFox64Only();
+
             LoadConfig();
 
             loadCallback?.Invoke(true);
 
             InitHaptics();
+        }
+
+        // This build of SpaceMonkey is for Star Fox 64 only: the other games' buttons are hidden, and
+        // the Star Fox 64 button takes their place. Everything else (configs, filters, outputs,
+        // haptics, hotkey) works as in the full SpaceMonkey.
+        const bool StarFox64Only = true;
+
+        void ApplyStarFox64Only()
+        {
+            Control[] keep = { starFox64Button, Filters, addConfigButton, OutputsBtn, HapticsBtn };
+            foreach (Control c in Controls)
+            {
+                if (c is Button && Array.IndexOf(keep, c) < 0)
+                    c.Visible = false;
+            }
+
+            starFox64Button.Location = new System.Drawing.Point(14, 11);
+            starFox64Button.Size = new System.Drawing.Size(300, 120);
+            starFox64Button.Font = new System.Drawing.Font(starFox64Button.Font.FontFamily, 14.0f, System.Drawing.FontStyle.Bold);
+            ClientSize = new System.Drawing.Size(ClientSize.Width, HapticsBtn.Bottom + 14);
+            Text = "SpaceMonkey " + versionString + " - Star Fox 64";
         }
 
         // Handles exceptions that occur in non-UI threads (e.g., background workers)
