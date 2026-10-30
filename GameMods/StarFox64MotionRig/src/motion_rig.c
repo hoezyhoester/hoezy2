@@ -51,7 +51,8 @@ static void MotionRig_Configure(void) {
     sConfigTimer = 90;
 
     host = recomp_get_config_string("host");
-    sf64_motion_rig_configure(recomp_get_config_u32("enabled") == 0, host, (s32) recomp_get_config_double("port"));
+    sf64_motion_rig_configure(recomp_get_config_u32("enabled") == 0, host, (s32) recomp_get_config_double("port"),
+                              (s32) recomp_get_config_double("boost_shake"));
     recomp_free_config_string(host);
 }
 

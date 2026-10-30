@@ -61,6 +61,7 @@ namespace {
     bool enabled = true;
     std::string host = "127.0.0.1";
     int port = 20790;
+    float boost_shake = 0.5f;   // 0..1, the mod's "Boost shake" option
     std::atomic_bool settings_changed = false; // Nothing is sent until the mod passes its settings.
 
     constexpr float units_to_metres = 0.06f;  // An Arwing at cruising speed is ~260 km/h.
@@ -71,6 +72,13 @@ namespace {
     constexpr float max_accel = 25.0f;        // m/s^2 per axis (~2.5 g), after scaling.
     constexpr float accel_smoothing = 0.5f;   // Per game frame; the game's movement steps at 30 Hz.
     constexpr uint32_t game_star_fox_64 = 3;
+
+    // Suspension sent per corner (mm, + compressed): the craft's lean from its g-forces, as SpaceMonkey
+    // would simulate it, plus a fast rumble while boosting. SpaceMonkey doesn't smooth suspension
+    // positions, so the rumble reaches the rig and shakers (its g-forces are smoothed too much to shake).
+    constexpr float susp_mm_per_accel = 2.0f;   // mm per m/s^2 (after scaling)
+    constexpr float susp_max_mm = 60.0f;
+    constexpr float shake_max_mm = 12.0f;        // at "Boost shake" 100%
 
     struct Vec { float x, y, z; };
     Vec operator+(Vec a, Vec b) { return { a.x + b.x, a.y + b.y, a.z + b.z }; }
@@ -96,7 +104,15 @@ namespace {
         float impact = 0.0f;
         int impact_frames = 0;
         Vec fwd{ 0.0f, 0.0f, 1.0f }, up{ 0.0f, 1.0f, 0.0f };
+        float shake_level = 0.0f;   // eases in and out with the boost
+        uint32_t shake_frame = 0;
+        uint32_t rng = 0x12345678u;
     } state;
+
+    float random_unit() { // 0..1
+        state.rng = state.rng * 1664525u + 1013904223u;
+        return (state.rng >> 8) * (1.0f / 16777216.0f);
+    }
 
     void reset_motion() {
         state.have_pos = false;
@@ -178,11 +194,13 @@ namespace {
     }
 }
 
-// sf64_motion_rig_configure(s32 enabled, const char* host, s32 port), called every few seconds.
+// sf64_motion_rig_configure(s32 enabled, const char* host, s32 port, s32 boost_shake_percent),
+// called every few seconds.
 DLLEXPORT void sf64_motion_rig_configure(uint8_t* rdram, recomp_context* ctx) {
     bool new_enabled = (int32_t)ctx->r4 != 0;
     gpr host_addr = ctx->r5;
     int new_port = std::clamp((int)(int32_t)ctx->r6, 1, 65535);
+    float new_shake = std::clamp((int)(int32_t)ctx->r7, 0, 100) / 100.0f;
 
     std::string new_host;
     if ((int32_t)host_addr != 0) {
@@ -198,6 +216,7 @@ DLLEXPORT void sf64_motion_rig_configure(uint8_t* rdram, recomp_context* ctx) {
 
     static bool configured = false;
     std::lock_guard lock{ settings_mutex };
+    boost_shake = new_shake;
     if (!configured || new_enabled != enabled || new_host != host || new_port != port) {
         configured = true;
         enabled = new_enabled;
@@ -285,7 +304,7 @@ DLLEXPORT void sf64_motion_rig_update(uint8_t* rdram, recomp_context* ctx) {
     uint8_t buf[192] = {};
     std::memcpy(buf, "XRTM", 4);
     put<uint16_t>(buf, 4, 2);                               // version
-    put<uint16_t>(buf, 6, flying ? (1 | 2 | 4) : 2);        // in a race, inputs, own accelerations
+    put<uint16_t>(buf, 6, flying ? (1 | 2 | 4 | 8) : 2);    // in a race, inputs, own accelerations, suspension
     put<uint32_t>(buf, 8, state.sequence++);
     put<uint32_t>(buf, 12, game_star_fox_64);
     put<double>(buf, 16, std::chrono::duration<double>(std::chrono::steady_clock::now() - state.start).count());
@@ -309,8 +328,34 @@ DLLEXPORT void sf64_motion_rig_update(uint8_t* rdram, recomp_context* ctx) {
     put<float>(buf, 148, roll);
     put<float>(buf, 152, state.yaw);
     put<float>(buf, 156, state.impact);
+
+    // Suspension: lean from the g-forces, and the boost rumble.
+    float target_shake = (flying && boost > 0) ? 1.0f : 0.0f;
+    state.shake_level += (target_shake - state.shake_level) * (target_shake > state.shake_level ? 0.5f : 0.25f);
+    float shake_strength;
+    {
+        std::lock_guard lock{ settings_mutex };
+        shake_strength = boost_shake;
+    }
+    float shake_amp = shake_max_mm * shake_strength * state.shake_level;
+    state.shake_frame++;
+    float heave = accel_up * susp_mm_per_accel;
+    float pitch_mm = -accel_fwd * susp_mm_per_accel;   // braking: nose dips
+    float roll_mm = -accel_right * susp_mm_per_accel;  // turning right: the left side compresses
+    float corner_sign[4][2] = { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } }; // FL FR RL RR: front, left
     for (int i = 0; i < 4; i++) {
-        put<float>(buf, 176 + 4 * i, 1.0f);                  // wheel load ratio (no wheels)
+        float travel = 0.0f;
+        if (flying) {
+            travel = heave + corner_sign[i][0] * pitch_mm * 0.5f + corner_sign[i][1] * roll_mm * 0.5f;
+            if (shake_amp > 0.01f) {
+                // Alternates every frame (~15 Hz) with some randomness, each corner a little different.
+                float sign = ((state.shake_frame + (i & 1)) & 1) ? 1.0f : -1.0f;
+                travel += sign * shake_amp * (0.6f + 0.4f * random_unit());
+            }
+            travel = std::clamp(travel, -susp_max_mm, susp_max_mm);
+        }
+        put<float>(buf, 160 + 4 * i, travel);
+        put<float>(buf, 176 + 4 * i, 1.0f + travel / 100.0f); // wheel load ratio follows the travel
     }
 
     sendto(state.sock, reinterpret_cast<const char*>(buf), sizeof(buf), 0,

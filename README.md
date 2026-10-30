@@ -630,7 +630,7 @@ DriveClub runs natively on PC through DriveClub Recomp (https://github.com/Overk
 
 ## Star Fox 64 (Starfox 64: Recompiled)
 
-Star Fox 64 runs natively on PC through Starfox 64: Recompiled (https://github.com/sonicdcer/Starfox64Recomp). The Motion Rig Telemetry mod (source in `GameMods/StarFox64MotionRig`) sends the player's Arwing, Landmaster or Blue-Marine as UDP packets in the same format as DriveClub Recomp: the craft's pitch and bank, and the g-forces of its turns, climbs, dives, loops, boosts and brakes, worked out from the game's own movement, with a jolt when it's hit. Barrel rolls don't spin the rig.
+Star Fox 64 runs natively on PC through Starfox 64: Recompiled (https://github.com/sonicdcer/Starfox64Recomp). The Motion Rig Telemetry mod (source in `GameMods/StarFox64MotionRig`) sends the player's Arwing, Landmaster or Blue-Marine as UDP packets in the same format as DriveClub Recomp: the craft's pitch and bank, and the g-forces of its turns, climbs, dives, loops, boosts and brakes, worked out from the game's own movement, a rumble while boosting (sent as suspension, set its strength with the mod's "Boost shake" option) and a jolt when it's hit. Barrel rolls don't spin the rig.
 
 ### Setup
 

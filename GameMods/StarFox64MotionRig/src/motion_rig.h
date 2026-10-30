@@ -20,7 +20,7 @@ typedef struct MotionRigInput {
 } MotionRigInput; // size = 0x40
 
 // From the native library.
-RECOMP_IMPORT(".", void sf64_motion_rig_configure(s32 enabled, const char* host, s32 port));
+RECOMP_IMPORT(".", void sf64_motion_rig_configure(s32 enabled, const char* host, s32 port, s32 boostShake));
 RECOMP_IMPORT(".", void sf64_motion_rig_update(MotionRigInput* input));
 
 #endif
