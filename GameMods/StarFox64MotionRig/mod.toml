@@ -8,7 +8,7 @@
 id = "sf64_motion_rig_telemetry"
 
 # Version of this mod.
-version = "1.2.0"
+version = "1.2.1"
 
 # The name that will show up for this mod in the mod menu. This should be human readable.
 display_name = "Motion Rig Telemetry"
@@ -16,7 +16,7 @@ display_name = "Motion Rig Telemetry"
 # The description that will show up when this mod is displayed in the mod menu. This should be human readable.
 description = """
 Sends your Arwing, Landmaster or Blue-Marine's motion to a motion simulator through SpaceMonkey \
-(press its Star Fox 64 button), the same way DriveClub Recomp does: g-forces from turns, climbs, \
+(press its Star Fox 64 button): g-forces from turns, climbs, \
 dives, loops, boosts and brakes, a rumble while boosting, a jolt when you're hit, and the craft's pitch and bank. \
 Barrel rolls don't spin the rig. The rig eases back to rest in menus, cutscenes and on the pause screen.
 
