@@ -294,8 +294,9 @@ DLLEXPORT void sf64_motion_rig_update(uint8_t* rdram, recomp_context* ctx) {
     put<double>(buf, 72, state.up.x);  put<double>(buf, 80, state.up.y);  put<double>(buf, 88, state.up.z);
     put<float>(buf, 96, speed);
     float stick_x = flying ? std::clamp(MEM_W(0x38, in) / 80.0f, -1.0f, 1.0f) : 0.0f;
-    put<float>(buf, 100, !flying ? 0.0f : MEM_W(0x10, in) != 0 ? 1.0f : 0.5f); // throttle: cruising, boosting
-    put<float>(buf, 104, 0.0f);                               // brake
+    int32_t boost = flying ? MEM_W(0x10, in) : 0;            // 1 boosting, -1 braking
+    put<float>(buf, 100, !flying ? 0.0f : boost > 0 ? 1.0f : boost < 0 ? 0.0f : 0.5f); // throttle
+    put<float>(buf, 104, boost < 0 ? 1.0f : 0.0f);            // brake
     put<float>(buf, 108, stick_x);                            // steering: the stick
     put<float>(buf, 112, -1.0f);                              // rpm (none)
     put<float>(buf, 116, -1.0f);                              // gear (none)

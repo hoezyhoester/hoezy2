@@ -82,7 +82,13 @@ RECOMP_HOOK_RETURN("Display_Update") void MotionRig_OnDisplayUpdate(void) {
 
     in->form = player->form;
     in->shields = player->shields;
-    in->boosting = player->boostActive;
+    // 1 boosting, -1 braking, 0 neither. The Arwing and Blue-Marine boost and brake through their boost
+    // speed (above 0 boosting, below 0 braking); only the Landmaster sets boostActive, for either.
+    if (player->form == FORM_LANDMASTER) {
+        in->boosting = !player->boostActive ? 0 : (gInputHold->button & gBrakeButton[player->num]) ? -1 : 1;
+    } else {
+        in->boosting = (player->boostSpeed > 0.1f) ? 1 : (player->boostSpeed < -0.1f) ? -1 : 0;
+    }
     in->stickX = gInputPress->stick_x;
     in->stickY = gInputPress->stick_y;
 
